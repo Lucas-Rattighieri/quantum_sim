@@ -6,12 +6,12 @@ Este repositório contém funções implementadas em PyTorch para simulação de
 ## Estrutura dos Módulos
 
 - `qsim/`
-  - **`states.py`**: define funções para criação de estados iniciais (autoestados da base Z, base X, superposição uniforme, etc.).
-  - **`operators.py`**: define operadores quânticos básicos (X, Y, Z, Hadamard, S, Rx, Ry, Rz, CNOT, CZ, XX, YY, ZZ).
-  - **`hamiltonians.py`**: define os Hamiltonianos baseados em operadores de Pauli e interações de dois corpos (X, Y, Z, XX, YY).
+  - **`states.py`**: define funções para criação de estados iniciais (autoestados da base Z, base X, base Y, superposição uniforme).
+  - **`operators.py`**: define operadores quânticos básicos (X, Y, Z, Hadamard, S, S dagger, Rx, Ry, Rz, CNOT, CZ, SWAP, XX, YY, ZZ).
+  - **`hamiltonians.py`**: define os Hamiltonianos baseados em operadores de Pauli e interações de dois corpos (X, Y, Z, XX, YY, XY).
   - **`evolution.py`**: implementa operadores de evolução temporal unitária $\exp(-i H \theta)$ com diferentes tipos de Hamiltonianos.
-  - **`bitops.py`**: implementa operações de simetria (translação, inversão, reflexão) e funções auxiliares baseadas em manipulação de bits.
-  - **`config.py`**: define o `device` e `dtype` utilizados globalmente nos módulos.
+  - **`bitops.py`**: implementa funções auxiliares baseadas em manipulação de bits, incluindo operações de simetria como translação, inversão e reflexão, além de utilitários como contar bits ou permutar posições.
+  - **`config.py`**: define o `device` (CPU ou GPU) e o tipo de dados (`dtype`) utilizados globalmente nos módulos.
 
 ## Requisitos
 
