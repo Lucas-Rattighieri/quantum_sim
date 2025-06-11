@@ -10,6 +10,7 @@ Este repositório contém funções implementadas em PyTorch para simulação de
   - **`operators.py`**: define operadores quânticos básicos (X, Y, Z, Hadamard, S, S dagger, Rx, Ry, Rz, CNOT, CZ, SWAP, XX, YY, ZZ).
   - **`hamiltonians.py`**: define os Hamiltonianos baseados em operadores de Pauli e interações de dois corpos (X, Y, Z, XX, YY, XY).
   - **`evolution.py`**: implementa operadores de evolução temporal unitária $\exp(-i H \theta)$ com diferentes tipos de Hamiltonianos.
+  - **`diagonal.py`**: define funções para construir vetores correspondentes à diagonal principal de operadores quânticos diagonais em uma cadeia de L qubits, sem formar a matriz completa.
   - **`bitops.py`**: implementa funções auxiliares baseadas em manipulação de bits, incluindo operações de simetria como translação, inversão e reflexão, além de utilitários como contar bits ou permutar posições.
   - **`config.py`**: define o `device` (CPU ou GPU) e o tipo de dados (`dtype`) utilizados globalmente nos módulos.
 
