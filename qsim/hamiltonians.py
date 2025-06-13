@@ -3,7 +3,7 @@ from .operators import Z, X, Y, ZZ, XX, YY
 
 
 
-def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor):
+def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano X sobre o vetor de estado `psi`.
 
@@ -15,11 +15,14 @@ def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor):
     Parâmetros:
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hxpsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano X.
     """
+
+    if indice is None:
+        indice = gerar_indice(L)
 
     Hxpsi = torch.zeros_like(psi)
 
@@ -28,7 +31,7 @@ def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor):
     return Hxpsi
 
 
-def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor):
+def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano Y sobre o vetor de estado `psi`.
 
@@ -40,11 +43,14 @@ def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor):
     Parâmetros:
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hypsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano Y.
     """
+
+    if indice is None:
+        indice = gerar_indice(L)
 
     Hypsi = torch.zeros_like(psi)
 
@@ -53,7 +59,7 @@ def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor):
     return Hypsi
 
 
-def Hz(psi : torch.Tensor, L : int, indice : torch.Tensor):
+def Hz(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano Z sobre o vetor de estado `psi`.
 
@@ -65,12 +71,15 @@ def Hz(psi : torch.Tensor, L : int, indice : torch.Tensor):
     Parâmetros:
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hzpsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano Z.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     Hzpsi = torch.zeros_like(psi)
 
     for i in range(L):
@@ -78,7 +87,7 @@ def Hz(psi : torch.Tensor, L : int, indice : torch.Tensor):
     return Hzpsi
 
 
-def Hxx(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
+def Hxx(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano XX sobre o vetor de estado `psi`.
 
@@ -91,11 +100,14 @@ def Hxx(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hxxpsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano XX.
     """
+
+    if indice is None:
+        indice = gerar_indice(L)
 
     Hxxpsi = torch.zeros_like(psi)
 
@@ -107,7 +119,7 @@ def Hxx(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     return Hxxpsi
 
 
-def Hyy(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
+def Hyy(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano YY sobre o vetor de estado `psi`.
 
@@ -120,12 +132,15 @@ def Hyy(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hyypsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano YY.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+    
     Hyypsi = torch.zeros_like(psi)
 
     for i in range(L):
@@ -136,7 +151,7 @@ def Hyy(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     return Hyypsi
 
 
-def Hzz(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
+def Hzz(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano ZZ sobre o vetor de estado `psi`.
 
@@ -149,12 +164,15 @@ def Hzz(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hzzpsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano ZZ.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+    
     Hzzpsi = torch.zeros_like(psi)
 
     for i in range(L):
@@ -165,7 +183,7 @@ def Hzz(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     return Hzzpsi
 
 
-def Hxy(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
+def Hxy(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
     """
     Aplica a ação do Hamiltoniano XY sobre o vetor de estado `psi`.
 
@@ -179,12 +197,15 @@ def Hxy(psi : torch.Tensor, L : int, w, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - Hxypsi (torch.Tensor): vetor resultante da aplicação do Hamiltoniano XY.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     Hxypsi = torch.zeros_like(psi)
 
     for i in range(L):
