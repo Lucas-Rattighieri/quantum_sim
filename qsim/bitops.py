@@ -1,3 +1,22 @@
+import torch
+
+from .config import device
+
+
+def gerar_indice(L):
+    """
+    Gera um tensor com os índices dos estados base de uma cadeia de L qubits.
+
+    Parâmetros:
+    - L (int): número de qubits.
+
+    Retorna:
+    - torch.Tensor: tensor de inteiros de 0 até 2^L - 1, no device padrão.
+    """
+
+    indice = torch.arange(2**L, dtype=torch.int32 if L <= 31 else torch.int64, device=device)
+    return indice
+
 
 def ligar_bit(num, p : int):
     """
