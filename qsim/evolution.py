@@ -2,7 +2,7 @@ import torch
 from .operators import Z, X, Y, ZZ, XX, YY
 
 
-def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
+def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{a} X_a 
     sobre o vetor de estado `psi`.
@@ -14,11 +14,14 @@ def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - theta (float): ângulo de rotação aplicado a cada X_a.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução X.
     """
+
+    if indice is None:
+        indice = gerar_indice(L)
 
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
@@ -31,7 +34,7 @@ def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     return psi
 
 
-def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
+def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{a} Y_a 
     sobre o vetor de estado `psi`.
@@ -43,12 +46,15 @@ def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - theta (float): ângulo de rotação aplicado a cada Y_a.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução Y.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
 
@@ -60,7 +66,7 @@ def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     return psi
 
 
-def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
+def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{a} Z_a 
     sobre o vetor de estado `psi`.
@@ -72,12 +78,15 @@ def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - theta (float): ângulo de rotação aplicado a cada Z_a.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução Z.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
 
@@ -89,7 +98,7 @@ def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor):
     return psi
 
 
-def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor):
+def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{i<j} X_i X_j, w_{i,j} != 0 
     sobre o vetor de estado `psi`.
@@ -102,12 +111,15 @@ def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
     - theta (float): ângulo de rotação.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução X_i X_j.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
 
@@ -121,7 +133,7 @@ def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     return psi
 
 
-def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor):
+def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{i<j} Y_i Y_j, w_{i,j} != 0 
     sobre o vetor de estado `psi`.
@@ -134,12 +146,15 @@ def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
     - theta (float): ângulo de rotação.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução Y_i Y_j.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
 
@@ -153,7 +168,7 @@ def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     return psi
 
 
-def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor):
+def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução temporal associada ao termo do Hamiltoniano do tipo Σ_{i<j} Z_i Z_j, w_{i,j} != 0 
     sobre o vetor de estado `psi`.
@@ -166,12 +181,15 @@ def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
     - theta (float): ângulo de rotação.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
 
     Retorna:
     - psi (torch.Tensor): vetor de estado após a aplicação da evolução Z_i Z_j.
     """
 
+    if indice is None:
+        indice = gerar_indice(L)
+        
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
     istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
 
@@ -185,7 +203,7 @@ def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     return psi
 
 
-def expHxy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor):
+def expHxy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor = None):
     """
     Aplica a evolução unária gerada pelo Hamiltoniano Σ_{i<j} (X_i X_j + Y_i Y_j) / 2, w_{i,j} != 0 em um vetor de estado `psi`.
 
@@ -197,7 +215,7 @@ def expHxy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     - L (int): número de qubits.
     - w (array ou tensor): matriz simétrica indicando os acoplamentos. w[i, j] deve ser 1 (ativa interação) ou 0 (sem interação).
     - theta (float): ângulo de rotação associado à evolução.
-    - indice (torch.Tensor): tensor com os índices inteiros correspondentes aos estados base (de 0 até 2^L - 1).
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base (de 0 até 2^L - 1).
 
     A função aplica rotações no subespaço formado pelos pares de estados |01⟩ e |10⟩, 
     preservando |00⟩ e |11⟩. 
@@ -206,7 +224,9 @@ def expHxy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor)
     - epsi (torch.Tensor): novo vetor de estado após aplicação da evolução XY.
     """
 
-
+    if indice is None:
+        indice = gerar_indice(L)
+        
     epsi = psi.clone()
 
     ctheta = torch.cos(torch.tensor(theta, device=psi.device))
