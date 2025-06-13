@@ -20,7 +20,7 @@ def X(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     novo_indice = indice ^ (1 << i)
 
@@ -47,7 +47,7 @@ def Z(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     if psi.dim() == 2:
         indice_z = indice.unsqueeze(1)
@@ -79,7 +79,7 @@ def Y(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     psi = Z(psi, L, i, indice)
     psi = X(psi, L, i, indice)
@@ -109,7 +109,7 @@ def Had(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     Xpi = X(psi, L, i, indice)
     Zpi = Z(psi, L, i, indice)
@@ -139,7 +139,7 @@ def S(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     if psi.dim() == 2:
         indice_z = indice.unsqueeze(1)
@@ -173,7 +173,7 @@ def Sd(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     if psi.dim() == 2:
         indice_z = indice.unsqueeze(1)
@@ -300,7 +300,7 @@ def CNOT(psi : torch.Tensor, L : int, control : int, target : int, indice : torc
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     novo_indice =  (((indice >> control) & 1) << target) ^ indice
 
@@ -332,7 +332,7 @@ def CZ(psi : torch.Tensor, L : int, control : int, target : int, indice : torch.
 
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     indice_z = ((indice >> control) & (indice >> target)) & 1
     factor = 1 - 2 * indice_z
@@ -360,7 +360,7 @@ def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = 
 
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
     
     novo_indice = permutar_bits(indice, i, j)
 
@@ -389,7 +389,7 @@ def XX(psi, L, i, j, indice = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     novo_indice = indice ^ ((1 << i) | (1 << j))
 
@@ -417,7 +417,7 @@ def ZZ(psi, L, i, j, indice = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     if psi.dim() == 2:
         indice_z = indice.unsqueeze(1)
@@ -449,7 +449,7 @@ def YY(psi, L, i, j, indice = None):
     """
 
     if indice is None:
-        indice = torch.arange(2**L, dtype=torch.int64, device=psi.device)
+        indice = gerar_indice(L)
 
     psi = ZZ(psi, L, i, j, indice)
     psi = XX(psi, L, i, j, indice)
