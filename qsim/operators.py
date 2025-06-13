@@ -207,8 +207,13 @@ def Rx(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     - (torch.Tensor): vetor resultante da aplicação da rotação Rx(θ) no qubit `i`.
     """
 
-    ctheta = torch.cos(torch.tensor(theta / 2, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta / 2, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta / 2)
+    istheta = 1j * torch.sin(theta / 2)
 
     Xpsi = X(psi, L, i, indice)
 
@@ -237,8 +242,13 @@ def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     - (torch.Tensor): vetor resultante da aplicação da rotação Ry(θ) no qubit `i`.
     """
 
-    ctheta = torch.cos(torch.tensor(theta / 2, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta / 2, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta / 2)
+    istheta = 1j * torch.sin(theta / 2)
 
     Ypsi = Y(psi, L, i, indice)
 
@@ -267,8 +277,13 @@ def Rz(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     - (torch.Tensor): vetor resultante da aplicação da rotação Rz(θ) no qubit `i`.
     """
 
-    ctheta = torch.cos(torch.tensor(theta / 2, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta / 2, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta / 2)
+    istheta = 1j * torch.sin(theta / 2)
 
     Zpsi = Z(psi, L, i, indice)
 
