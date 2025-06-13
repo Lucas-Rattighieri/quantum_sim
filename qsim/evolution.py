@@ -23,8 +23,13 @@ def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     if indice is None:
         indice = gerar_indice(L)
 
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for a in range(L):
         cpsi = psi * ctheta
@@ -55,8 +60,13 @@ def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     if indice is None:
         indice = gerar_indice(L)
         
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for a in range(L):
         cpsi = psi * ctheta
@@ -87,8 +97,13 @@ def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     if indice is None:
         indice = gerar_indice(L)
         
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for a in range(L):
         cpsi = psi * ctheta
@@ -120,8 +135,13 @@ def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     if indice is None:
         indice = gerar_indice(L)
         
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for i in range(L):
         for j in range(i + 1, L):
@@ -155,8 +175,13 @@ def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     if indice is None:
         indice = gerar_indice(L)
         
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for i in range(L):
         for j in range(i + 1, L):
@@ -190,8 +215,13 @@ def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     if indice is None:
         indice = gerar_indice(L)
         
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for i in range(L):
         for j in range(i + 1, L):
@@ -229,8 +259,13 @@ def expHxy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
         
     epsi = psi.clone()
 
-    ctheta = torch.cos(torch.tensor(theta, device=psi.device))
-    istheta = 1j * torch.sin(torch.tensor(theta, device=psi.device))
+    if not isinstance(theta, torch.Tensor):
+        theta = torch.tensor(theta, dtype=psi.dtype, device=psi.device)
+    else:
+        theta = theta.to(dtype=psi.dtype, device=psi.device)
+
+    ctheta = torch.cos(theta)
+    istheta = 1j * torch.sin(theta)
 
     for i in range(L):
         for j in range(i + 1, L):
