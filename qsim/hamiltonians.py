@@ -1,6 +1,6 @@
 import torch
 from .operators import Z, X, Y, ZZ, XX, YY
-
+from .bitops import gerar_indice
 
 
 def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
