@@ -95,3 +95,28 @@ def autoestado_y(L, i):
     psi = produto / torch.sqrt(torch.tensor(2 ** L))
 
     return psi
+
+
+def superposicao_hamming(L: int, d: int) -> torch.Tensor:
+    """
+    Gera um vetor de estado normalizado correspondente à superposição uniforme
+    de todos os estados da base computacional com exatamente d bits 1 (peso de Hamming fixo).
+
+    Parâmetros:
+    - L (int): número total de qubits.
+    - d (int): número de bits 1 (peso de Hamming).
+
+    Retorna:
+    - torch.Tensor: vetor de dimensão (2**L,) representando o estado quântico.
+    """
+    indice = gerar_indice(L)
+
+    d_bits = contar_bits(indice) == d
+
+    indice_d_bits = indice[d_bits]
+
+    psi = torch.zeros(2**L, dtype=dtype, device=device)
+
+    psi[indice_d_bits] = 1 / torch.sqrt(torch.tensor(len(indice_d_bits), device=device))
+
+    return psi
