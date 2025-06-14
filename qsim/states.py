@@ -1,10 +1,10 @@
 import torch
 
 from .config import device, dtype
-from .bitops import contar_bits
+from .bitops import *
 
 
-def superposicao_uniforme(L, num_estados = 1):
+def superposicao_uniforme(L, num_estados = 1) -> torch.Tensor:
     """
     Gera um vetor de estado representando uma superposição uniforme sobre todos os estados base de L qubits.
 
@@ -29,7 +29,7 @@ def superposicao_uniforme(L, num_estados = 1):
     return psi
 
 
-def autoestado_z(L, i):
+def autoestado_z(L, i) -> torch.Tensor:
     """
     Gera o autoestado do operador soma dos Z, ∑_a Z_a, correspondente ao estado base computacional |i⟩.
 
@@ -46,7 +46,7 @@ def autoestado_z(L, i):
     return psi
 
 
-def autoestado_x(L, i):
+def autoestado_x(L, i) -> torch.Tensor:
     """
     Gera um autoestado do operador soma dos X, ∑_a X_a, para um sistema de L qubits.
 
@@ -71,7 +71,7 @@ def autoestado_x(L, i):
     return psi
 
 
-def autoestado_y(L, i):
+def autoestado_y(L, i) -> torch.Tensor:
     """
     Gera um autoestado do operador soma dos Y, ∑_a Y_a, para um sistema de L qubits.
 
