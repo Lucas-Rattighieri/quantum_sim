@@ -103,7 +103,7 @@ def possui_um_bit_1(num: int):
     Retorna:
     - bool: Verificação se num possui um bit 1.
     """
-    return num != 0 & (num & (num - 1)) == 0
+    return (num != 0) & ((num & (num - 1)) == 0)
 
 
 def translacao(num, d: int, L: int):
