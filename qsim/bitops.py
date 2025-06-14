@@ -93,6 +93,19 @@ def permutar_bits(num, i : int, j : int):
     return num ^ ((mask << i) | (mask << j))
 
 
+def possui_um_bit_1(num: int):
+    """
+    Verifica se o número possui um bit 1 apenas.
+
+    Parâmetros:
+    - num (int): número inteiro de entrada.
+
+    Retorna:
+    - bool: Verificação se num possui um bit 1.
+    """
+    return num != 0 and (num & (num - 1)) == 0
+
+
 def translacao(num, d: int, L: int):
     """
     Aplica uma translação cíclica de d posições para a direita nos L bits de num.
