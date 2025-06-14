@@ -61,7 +61,7 @@ def autoestado_x(L, i) -> torch.Tensor:
     - psi (torch.Tensor): vetor de estado normalizado correspondente ao autoestado do operador ∑_a X_a.
     """
 
-    indice = torch.arange(2**L, dtype=torch.int64, device=device)
+    indice = gerar_indice(L)
 
     novo_indice = indice & i
     produto = 1 - 2 * (contar_bits(novo_indice, L) & 1)
@@ -86,13 +86,13 @@ def autoestado_y(L, i) -> torch.Tensor:
     - psi (torch.Tensor): vetor de estado normalizado correspondente ao autoestado do operador ∑_a Y_a.
     """
 
-    indice = torch.arange(2**L, dtype=torch.int64)
+    indice = gerar_indice(L)
     bits_contados = contar_bits(indice, L)
 
     novo_indice = indice & i
-    produto = produto = (1 - 2 * ((contar_bits(novo_indice, L) ^ (bits_contados >> 1)) & 1)) * (1 + (bits_contados & 1) * (1j - 1))
+    produto = (1 - 2 * ((contar_bits(novo_indice, L) ^ (bits_contados >> 1)) & 1)) * (1 + (bits_contados & 1) * (1j - 1))
 
-    psi = produto / torch.sqrt(torch.tensor(2 ** L))
+    psi = produto / torch.sqrt(torch.tensor(2 ** L, dtype=dtype, device=device))
 
     return psi
 
