@@ -117,6 +117,6 @@ def superposicao_hamming(L: int, d: int) -> torch.Tensor:
 
     psi = torch.zeros(2**L, dtype=dtype, device=device)
 
-    psi[indice_d_bits] = 1 / torch.sqrt(torch.tensor(len(indice_d_bits), device=device))
+    psi[indice_d_bits] = 1 / torch.sqrt(torch.tensor(len(indice_d_bits), dtype=dtype, device=device))
 
     return psi
