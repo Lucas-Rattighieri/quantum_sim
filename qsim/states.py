@@ -111,7 +111,7 @@ def superposicao_hamming(L: int, d: int) -> torch.Tensor:
     """
     indice = gerar_indice(L)
 
-    d_bits = contar_bits(indice) == d
+    d_bits = contar_bits(indice, L) == d
 
     indice_d_bits = indice[d_bits]
 
