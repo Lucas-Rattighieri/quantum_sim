@@ -1,3 +1,4 @@
+import torch
 from .. import diagonal as qd
 from .. import bitops as qb
 from .. import config as qconfig
