@@ -79,7 +79,7 @@ def particao_maxcut(num: int, L: int, fixar_subconjunto : bool = False):
     B = []
 
     if fixar_subconjunto:
-        B.append(0)
+        A.append(0)
         Ll = L - 1
         v = 1
     else:
