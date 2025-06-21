@@ -26,9 +26,9 @@ def Hmaxcut(L: int, w, fixar_subconjunto : bool =False):
             if w[i, j] != 0:
                 if fixar_subconjunto:
                     if i == 0:
-                        H += qd.cadeia_z(Ll, [j], w[i, j])
+                        H += qd.cadeia_z(Ll, [j-1], w[i, j])
                     else:
-                        H += qd.cadeia_z(Ll, [i, j], w[i, j])
+                        H += qd.cadeia_z(Ll, [i-1, j-1], w[i, j])
                 else:
                     H += qd.cadeia_z(Ll, [i, j], w[i, j])
 
