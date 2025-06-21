@@ -22,9 +22,8 @@ def indice_maxcut(num_vertices : int, vertice_i : int, fixar_subconjunto : bool 
     if fixar_subconjunto:
         if vertice_i == 0:
             return -1
-        return num_vertices - vertice_i - 2
-    else:
-        return num_vertices - vertice_i - 1
+
+    return num_vertices - vertice_i - 1
 
 
 def Hmaxcut(L: int, w, fixar_subconjunto : bool =False):
