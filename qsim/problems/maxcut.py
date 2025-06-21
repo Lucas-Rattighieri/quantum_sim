@@ -16,10 +16,11 @@ def Hmaxcut(L: int, w, fixar_subconjunto : bool =False):
     Retorna:
         Tensor: vetor de dimensão 2^L com a diagonal do Hamiltoniano
     """
-    H = torch.zeros(2**L, dtype=qconfig.dtype, device=qconfig.device)
-    
-    Ll = L - 1 if fixar_subconjunto else L
 
+    Ll = L - 1 if fixar_subconjunto else L
+    
+    H = torch.zeros(2**Ll, dtype=qconfig.dtype, device=qconfig.device)
+    
     for i in range(L):
         for j in range(i + 1, L):  
             if w[i, j] != 0:
