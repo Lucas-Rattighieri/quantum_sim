@@ -39,7 +39,7 @@ def indice_tsp(num_cidades : int, cidade_i : int, posicao : int, fixar_cidade : 
 
 
 
-def H_tsp(num_cidades, w, A=10, B=1, fixar_cidade=False):
+def H_tsp(num_cidades : int, w, A : float = 10, B : float = 1, fixar_cidade : bool =False):
     """
     Constrói o Hamiltoniano do problema do caixeiro viajante (TSP) no formato binário,
     penalizando violações das restrições e atribuindo custo às transições entre cidades.
@@ -110,17 +110,29 @@ def H_tsp(num_cidades, w, A=10, B=1, fixar_cidade=False):
 
 
 
-def ciclo_hamiltoniano(estado, n, fixar_cidade = False):
+def ciclo_hamiltoniano(estado : int, num_cidades : int, fixar_cidade = False):
+    """
+    Dado um inteiro `estado` representando uma configuração binária de um possível
+    percurso no TSP (formulado como QUBO), reconstrói o ciclo correspondente.
+
+    Parâmetros:
+        estado (int): configuração binária representando um estado base (|x⟩)
+        num_cidades (int): número de cidades
+        fixar_cidade (bool): se True, assume que a cidade 0 está fixada na posição 0
+
+    Retorna:
+        list[int]: ciclo de cidades visitadas na ordem definida pela configuração
+    """
 
     if fixar_cidade:
-        L = (n-1) ** 2
-        n -= 1
+        L = (num_cidades-1) ** 2
+        num_cidades -= 1
     else:
-        L = n ** 2
+        L = num_cidades ** 2
 
     ciclo = [-1] * n
 
-    filtro = (1 << n) - 1
+    filtro = (1 << num_cidades) - 1
 
     for cidade in range(n):
         posicao = estado & filtro
@@ -133,7 +145,7 @@ def ciclo_hamiltoniano(estado, n, fixar_cidade = False):
         if posicao != -1:
             ciclo[posicao] = (cidade + 1) if fixar_cidade else cidade
           
-        estado >>= n
+        estado >>= num_cidades
 
     if fixar_cidade:
         ciclo = [0] + ciclo
