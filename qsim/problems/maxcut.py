@@ -22,6 +22,7 @@ def indice_maxcut(num_vertices : int, vertice_i : int, fixar_subconjunto : bool 
     if fixar_subconjunto:
         if vertice_i == 0:
             return -1
+        return (num_vertices - 1) - (vertice_i - 1) - 1
 
     return num_vertices - vertice_i - 1
 
@@ -45,9 +46,10 @@ def Hmaxcut(L: int, w, fixar_subconjunto : bool =False):
     H = torch.zeros(2**Ll, dtype=qconfig.dtype, device=qconfig.device)
     
     for i in range(L):
+        ki = indice_maxcut(L, i, fixar_subconjunto)
+
         for j in range(i + 1, L):  
             if w[i, j] != 0:
-                ki = indice_maxcut(L, i, fixar_subconjunto)
                 kj = indice_maxcut(L, j, fixar_subconjunto)
                 if fixar_subconjunto:
                     if i == 0:
