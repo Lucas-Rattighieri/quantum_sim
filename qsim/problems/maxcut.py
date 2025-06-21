@@ -22,7 +22,7 @@ def indice_maxcut(num_vertices : int, vertice_i : int, fixar_subconjunto : bool 
     if fixar_subconjunto:
         if vertice_i == 0:
             return -1
-        return (num_vertices - 1) - (vertice_i - 1) - 1
+        return (num_vertices - 1) - vertice_i - 1
 
     return num_vertices - vertice_i - 1
 
