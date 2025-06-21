@@ -2,48 +2,66 @@ from .. import diagonal as qd
 from .. import bitops as qb
 from .. import config as qconfig
 
-def Hmaxcut(L : int, w):
+def Hmaxcut(L: int, w, fixar_subconjunto : bool =False):
     """
-    Constrói a diagonal do Hamiltoniano correspondente ao problema MaxCut,
-    codificado como um problema QUBO com variáveis binárias z_i ∈ {±1}.
+    Constrói a diagonal do Hamiltoniano do MaxCut com codificação Z ∈ {±1}.
 
     Parâmetros:
-        L (int): número de qubits (ou vértices do grafo)
-        w (Tensor): matriz de pesos w_{ij} das arestas do grafo (L x L)
+        L (int): número de vértices
+        w (Tensor): matriz de pesos (L x L)
+        fixar_subconjunto (bool): se True, fixa o vértice 0 no subconjunto
+            representado por 0
 
     Retorna:
-        torch.Tensor: vetor de dimensão 2^L representando a diagonal do Hamiltoniano,
-                      com as contribuições de cada estado base.
+        Tensor: vetor de dimensão 2^L com a diagonal do Hamiltoniano
     """
-  
-    H = torch.zeros(2**L, dtype= qconfig.dtype, device= qconfig.device)
+    H = torch.zeros(2**L, dtype=qconfig.dtype, device=qconfig.device)
+    
+    Ll = L - 1 if fixar_subconjunto else L
 
     for i in range(L):
-        for j in range(L):
-            if (w[i,j] != 0):
-                termo = qd.cadeia_z(L, [i, j], w[i, j] / 2)
-                H = H + termo
+        for j in range(i + 1, L):  
+            if w[i, j] != 0:
+                if fixar_subconjunto:
+                    if i == 0:
+                        H += qd.cadeia_z(Ll, [j], w[i, j])
+                    else:
+                        H += qd.cadeia_z(Ll, [i, j], w[i, j])
+                else:
+                    H += qd.cadeia_z(Ll, [i, j], w[i, j])
+
     return H
 
-def particao_maxcut(num: int, L: int):
+
+def particao_maxcut(num: int, L: int, fixar_subconjunto : bool =False):
     """
-    Transcreve um inteiro num (representando uma configuração binária) em dois subconjuntos
-    correspondentes à partição do grafo no MaxCut, com x_i ∈ {0,1}.
+    Dado um inteiro que representa a configuração binária do MaxCut (como um estado base),
+    retorna os subconjuntos A e B definidos por essa configuração.
 
     Parâmetros:
-        num (int): inteiro representando a bitstring da configuração
-        L (int): número de vértices (bits)
+        num (int): inteiro representando a configuração de L bits (ou L - 1 se fixado)
+        L (int): número total de vértices (qubits)
+        fixar_subconjunto (bool): se True, fixa o vértice 0 em B e ignora seu bit na codificação
 
     Retorna:
-        (list[int], list[int]): tupla com os vértices em cada subconjunto
+        (list[int], list[int]): subconjuntos A e B com os índices dos vértices
     """
+
     A = []
     B = []
 
-    for i in range(L):
+    if fixar_subconjunto:
+        B.append(0)
+        Ll = L - 1
+        v = 1
+    else:
+        Ll = L
+        v = 0
+
+    for i in range(Ll):
         if qb.bit(num, i):
-            B.append(i)
+            B.append(i + v)
         else:
-            A.append(i)
+            A.append(i + v)
 
     return A, B
