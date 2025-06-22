@@ -131,7 +131,7 @@ def ciclo_hamiltoniano(estado : int, num_cidades : int, fixar_cidade = False):
     else:
         L = num_cidades ** 2
 
-    ciclo = [-1] * n
+    ciclo = [-1] * num_cidades
 
     filtro = (1 << num_cidades) - 1
 
