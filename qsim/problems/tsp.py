@@ -135,7 +135,7 @@ def ciclo_hamiltoniano(estado : int, num_cidades : int, fixar_cidade = False):
 
     filtro = (1 << num_cidades) - 1
 
-    for cidade in range(n):
+    for cidade in range(num_cidades):
         posicao = estado & filtro
       
         if qb.possui_um_bit_1(posicao):
