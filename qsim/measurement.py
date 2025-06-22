@@ -23,3 +23,16 @@ def medir_state_vector(psi: torch.Tensor, nshots: int, retornar_porcentagem: boo
 
     return estados, contagens
 
+
+def prob_estado_base(psi : torch.Tensor, estado : int):
+    """
+    Calcula a probabilidade de medir o vetor base computacional 'estado' no estado quântico 'psi'.
+
+    Parâmetros:
+        psi (torch.Tensor): vetor de estado quântico (complexo).
+        estado (int): índice do estado base computacional.
+
+    Retorna:
+        (float): probabilidade de obter o 'estado' na medição, ou seja, |psi[estado]|^2.
+    """
+    return float(torch.abs(psi[estado]) ** 2)
