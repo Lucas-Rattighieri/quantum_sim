@@ -24,7 +24,11 @@ def X(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
 
     novo_indice = indice ^ (1 << i)
 
-    return psi[novo_indice]
+    xpsi = psi[novo_indice]
+    psi.copy_(xpsi)
+
+    del xpsi, novo_indice
+    return psi
 
 
 def Z(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -43,20 +47,18 @@ def Z(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
       Se não fornecido, será gerado automaticamente. É ajustado automaticamente se `psi` estiver em batch.
 
     Retorna:
-    - Zipsi (torch.Tensor): vetor resultante da aplicação da operação Z_i em `psi`.
+    - psi (torch.Tensor): vetor resultante da aplicação da operação Z_i em `psi`.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
     if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+        psi.mul_((1 - 2 * ((indice.unsqueeze(1) >> i) & 1))) 
     else:
-        indice_z = indice
-
-    Zipsi = (1 - 2 * ((indice_z >> i) & 1)) * psi
-
-    return Zipsi
+        psi.mul_((1 - 2 * ((indice >> i) & 1)))
+  
+    return psi 
 
 
 def Y(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -75,7 +77,7 @@ def Y(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
       Se não fornecido, será gerado automaticamente.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da operação Y_i em `psi`.
+    - psi (torch.Tensor): vetor resultante da aplicação da operação Y_i em `psi`.
     """
 
     if indice is None:
@@ -84,7 +86,8 @@ def Y(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     psi = Z(psi, L, i, indice)
     psi = X(psi, L, i, indice)
 
-    return 1j * psi
+    psi.mul_(1j)
+    return psi
 
 
 def Had(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -111,10 +114,16 @@ def Had(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    Xpi = X(psi, L, i, indice)
-    Zpi = Z(psi, L, i, indice)
+    zpsi = psi.clone()
+    
+    X(psi, L, i, indice)
+    Z(zpsi, L, i, indice)
 
-    return (Xpi + Zpi) / torch.sqrt(torch.tensor(2.0, device=psi.device))
+    psi.add_(zpsi).div_(torch.sqrt(torch.tensor(2.0, device=psi.device)))
+
+    del zpsi
+
+    return psi
 
 
 def S(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -142,13 +151,11 @@ def S(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
         indice = gerar_indice(L)
 
     if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+        psi.mul_(1 + ((indice.unsqueeze(1) >> i) & 1) * (1j - 1))
     else:
-        indice_z = indice
-
-    Spsi = (1 + ((indice_z >> i) & 1) * (1j - 1)) * psi
-
-    return Spsi
+        psi.mul_(1 + ((indice >> i) & 1) * (1j - 1))
+    
+    return psi
 
 
 def Sd(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -172,17 +179,12 @@ def Sd(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     - Sdpsi (torch.Tensor): vetor resultante da aplicação da operação de fase S† no qubit `i`.
     """
 
-    if indice is None:
-        indice = gerar_indice(L)
-
     if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+        psi.mul_(1 + ((indice.unsqueeze(1) >> i) & 1) * (-1j - 1))
     else:
-        indice_z = indice
-
-    Sdpsi = (1 + ((indice_z >> i) & 1) * (-1j - 1)) * psi
-
-    return Sdpsi
+        psi.mul_(1 + ((indice >> i) & 1) * (-1j - 1))
+        
+    return psi
 
 
 def Rx(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
@@ -215,9 +217,15 @@ def Rx(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
 
-    Xpsi = X(psi, L, i, indice)
+    xpsi = psi.clone()
+    X(xpsi, L, i, indice)
+    psi.mul_(ctheta)
+    xpsi.mul_(istheta)
+    psi.sub_(xpsi)
 
-    return ctheta * psi - istheta * Xpsi
+    del xpsi
+
+    return psi
 
 
 def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
@@ -250,9 +258,15 @@ def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
 
-    Ypsi = Y(psi, L, i, indice)
+    ypsi = psi.clone()
+    Y(ypsi, L, i, indice)
+    psi.mul_(ctheta)
+    ypsi.mul_(istheta)
+    psi.sub_(ypsi)
 
-    return ctheta * psi - istheta * Ypsi
+    del ypsi
+
+    return psi
 
 
 def Rz(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
@@ -285,9 +299,14 @@ def Rz(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
 
-    Zpsi = Z(psi, L, i, indice)
+    zpsi = psi.clone()
+    Z(zpsi, L, i, indice)
+    psi.mul_(ctheta)
+    zpsi.mul_(istheta)
+    psi.sub_(zpsi)
 
-    return ctheta * psi - istheta * Zpsi
+    return psi
+
 
 
 
@@ -319,7 +338,11 @@ def CNOT(psi : torch.Tensor, L : int, control : int, target : int, indice : torc
 
     novo_indice =  (((indice >> control) & 1) << target) ^ indice
 
-    return psi[novo_indice]
+    cnotpsi = psi[novo_indice]
+    psi.copy_(cnotpsi)
+
+    del cnotpsi, novo_indice
+    return psi
 
 
 def CZ(psi : torch.Tensor, L : int, control : int, target : int, indice : torch.Tensor = None):
@@ -349,10 +372,17 @@ def CZ(psi : torch.Tensor, L : int, control : int, target : int, indice : torch.
     if indice is None:
         indice = gerar_indice(L)
 
-    indice_z = ((indice >> control) & (indice >> target)) & 1
-    factor = 1 - 2 * indice_z
+    factor = 1 - 2 * (((indice >> control) & (indice >> target)) & 1)
     
-    return factor.unsqueeze(1) * psi if psi.dim() == 2 else factor * psi
+    if psi.dim() == 2:
+        psi.mul_(factor.unsqueeze(1))
+    else:
+        psi.mul_(factor)
+
+    del factor
+    
+    return psi
+
 
 
 def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = None):
@@ -379,7 +409,11 @@ def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = 
     
     novo_indice = permutar_bits(indice, i, j)
 
-    return psi[novo_indice]
+    swappsi = psi[novo_indice]
+    psi.copy_(swappsi)
+    
+    del swappsi, novo_indice
+    return psi
 
 
 def XX(psi, L, i, j, indice = None):
@@ -408,7 +442,12 @@ def XX(psi, L, i, j, indice = None):
 
     novo_indice = indice ^ ((1 << i) | (1 << j))
 
-    return psi[novo_indice]
+    xxpsi = psi[novo_indice]
+    psi.copy_(xxpsi)
+    
+    del xxpsi, novo_indice
+    
+    return psi
 
 
 def ZZ(psi, L, i, j, indice = None):
@@ -434,14 +473,17 @@ def ZZ(psi, L, i, j, indice = None):
     if indice is None:
         indice = gerar_indice(L)
 
+
+    novo_indice = 1 - 2 * (((indice >> i) ^ (indice >> j)) & 1)
+
     if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+        psi.mul_(novo_indice.unsqueeze(1))
     else:
-        indice_z = indice
+        psi.mul_(novo_indice)
 
-    novo_indice = 1 - 2 * (((indice_z >> i) ^ (indice_z >> j)) & 1)
+    del novo_indice
 
-    return psi * novo_indice
+    return psi
 
 
 def YY(psi, L, i, j, indice = None):
@@ -466,7 +508,7 @@ def YY(psi, L, i, j, indice = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    psi = ZZ(psi, L, i, j, indice)
-    psi = XX(psi, L, i, j, indice)
-
-    return - psi
+    ZZ(psi, L, i, j, indice)
+    XX(psi, L, i, j, indice)
+    psi.mul_(-1)
+    return psi
