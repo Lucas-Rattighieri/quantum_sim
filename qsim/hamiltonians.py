@@ -25,9 +25,13 @@ def Hx(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
         indice = gerar_indice(L)
 
     Hxpsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
-        Hxpsi += X(psi, L, i, indice)
+        psil = psil.copy(psi)
+        X(psil, L, i, indice)
+        Hxpsi.add_(psil)
+    del psil
     return Hxpsi
 
 
@@ -38,7 +42,7 @@ def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
     A função computa a contribuição de termos locais do tipo Y_i para cada sítio i,
     somando suas ações no vetor de estado. O resultado é equivalente à aplicação do Hamiltoniano:
 
-        H_Z = ∑_{i=0}^{L-1} Y_i
+        H_Y = ∑_{i=0}^{L-1} Y_i
 
     Parâmetros:
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
@@ -53,9 +57,13 @@ def Hy(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
         indice = gerar_indice(L)
 
     Hypsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
-        Hypsi += Y(psi, L, i, indice)
+        psil = psil.copy(psi)
+        Y(psil, L, i, indice)
+        Hypsi.add_(psil)
+    del psil
     return Hypsi
 
 
@@ -81,9 +89,13 @@ def Hz(psi : torch.Tensor, L : int, indice : torch.Tensor = None):
         indice = gerar_indice(L)
         
     Hzpsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
-        Hzpsi += Z(psi, L, i, indice)
+        psil = psil.copy(psi)
+        Z(psil, L, i, indice)
+        Hzpsi.add_(psil)
+    del psil
     return Hzpsi
 
 
@@ -110,12 +122,15 @@ def Hxx(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
         indice = gerar_indice(L)
 
     Hxxpsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                Hxxpsi += XX(psi, L, i, j, indice)
-
+                psil = psil.copy(psi)
+                XX(psil, L, i, j, indice)
+                Hxxpsi.add_(psil) 
+    del psil
     return Hxxpsi
 
 
@@ -142,12 +157,15 @@ def Hyy(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
         indice = gerar_indice(L)
     
     Hyypsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                Hyypsi += YY(psi, L, i, j, indice)
-    
+                psil = psil.copy(psi)
+                YY(psil, L, i, j, indice)
+                Hyypsi.add_(psil) 
+    del psil
     return Hyypsi
 
 
@@ -174,12 +192,15 @@ def Hzz(psi : torch.Tensor, L : int, w, indice : torch.Tensor = None):
         indice = gerar_indice(L)
     
     Hzzpsi = torch.zeros_like(psi)
+    psil = torch.empty_like(psi)
 
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                Hzzpsi += ZZ(psi, L, i, j, indice)
-    
+                psil = psil.copy(psi)
+                ZZ(psil, L, i, j, indice)
+                Hzzpsi.add_(psil) 
+    del psil
     return Hzzpsi
 
 
