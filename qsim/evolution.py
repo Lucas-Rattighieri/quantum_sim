@@ -31,15 +31,12 @@ def expHx(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    xpsi = psi.clone()
-
     for a in range(L):
-        X(xpsi, L, a, indice)
-        xpsi.mul_(istheta)
-        psi.mul_(ctheta)
-        psi.sub_(xpsi)
-    return psi
+        cpsi = psi * ctheta
+        isXpsi = X(psi, L, a, indice) * istheta
+        psi = cpsi - isXpsi
 
+    return psi
 
 
 def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = None):
@@ -71,13 +68,11 @@ def expHy(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    ypsi = psi.clone()
-
     for a in range(L):
-        Y(ypsi, L, a, indice)
-        ypsi.mul_(istheta)
-        psi.mul_(ctheta)
-        psi.sub_(ypsi)
+        cpsi = psi * ctheta
+        isXpsi = Y(psi, L, a, indice) * istheta
+        psi = cpsi - isXpsi
+
     return psi
 
 
@@ -110,13 +105,11 @@ def expHz(psi : torch.Tensor, L : int, theta : float, indice : torch.Tensor = No
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    zpsi = psi.clone()
-
     for a in range(L):
-        Z(zpsi, L, a, indice)
-        zpsi.mul_(istheta)
-        psi.mul_(ctheta)
-        psi.sub_(zpsi)
+        cpsi = psi * ctheta
+        isXpsi = Z(psi, L, a, indice) * istheta
+        psi = cpsi - isXpsi
+
     return psi
 
 
@@ -150,16 +143,13 @@ def expHxx(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    xxpsi = psi.clone()
-    
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                XX(xxpsi, L, a, indice)
-                xxpsi.mul_(istheta)
-                psi.mul_(ctheta)
-                psi.sub_(xxpsi)
-                
+                cpsi = psi * ctheta
+                isXXpsi = XX(psi, L, i, j, indice) * istheta
+                psi = cpsi - isXXpsi
+
     return psi
 
 
@@ -193,15 +183,12 @@ def expHyy(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    yypsi = psi.clone()
-
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                YY(yypsi, L, a, indice)
-                yypsi.mul_(istheta)
-                psi.mul_(ctheta)
-                psi.sub_(yypsi)
+                cpsi = psi * ctheta
+                isYYpsi = YY(psi, L, i, j, indice) * istheta
+                psi = cpsi - isYYpsi
 
     return psi
 
@@ -236,15 +223,12 @@ def expHzz(psi : torch.Tensor, L : int, w, theta : float, indice : torch.Tensor 
     ctheta = torch.cos(theta)
     istheta = 1j * torch.sin(theta)
 
-    zzpsi = psi.clone()
-
     for i in range(L):
         for j in range(i + 1, L):
             if w[i, j] != 0:
-                ZZ(zzpsi, L, a, indice)
-                zzpsi.mul_(istheta)
-                psi.mul_(ctheta)
-                psi.sub_(zzpsi)
+                cpsi = psi * ctheta
+                isYYpsi = ZZ(psi, L, i, j, indice) * istheta
+                psi = cpsi - isYYpsi
 
     return psi
 
