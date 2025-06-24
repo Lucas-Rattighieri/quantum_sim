@@ -1,19 +1,16 @@
 import torch
 from .bitops import *
 
-def X(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
+def X(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a porta de Pauli-X no qubit `i` do vetor de estado `psi`.
-
-    Essa função retorna o vetor resultante da aplicação de X_i sobre `psi`, onde X_i atua como
-    um operador de troca de bits, invertendo o valor do qubit `i` (|0⟩ <-> |1⟩) em cada base computacional.
 
     Parâmetros:
     - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual a porta X será aplicada.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): tensor com os índices inteiros dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar para armazenar os índices modificados.
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação da operação X_i em `psi`.
@@ -22,133 +19,148 @@ def X(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    novo_indice = indice ^ (1 << i)
+    if novo_indice is None:
+        tmp = indice ^ (1 << i)
+    else:
+        torch.bitwise_xor(indice, 1 << i, out=tmp)
 
     return psi[novo_indice]
 
 
-def Z(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
+def Z(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta de Pauli-Z no qubit `i` do vetor de estado `psi`.
 
-    A operação Z_i atua multiplicando por +1 os estados com o qubit `i` igual a 0
-    e por -1 os estados com o qubit `i` igual a 1. Esta função realiza essa operação
-    de forma vetorial, utilizando manipulação de bits nos índices.
-
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L ou batch x 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (dimensão 2^L ou batch x 2^L), tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual a porta Z será aplicada.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente. É ajustado automaticamente se `psi` estiver em batch.
+    - indice (torch.Tensor, opcional): índices dos estados base (gerados se não fornecido).
+    - tmp (torch.Tensor, opcional): tensor auxiliar inteiro para armazenar os bits (evita alocação).
+    - out (torch.Tensor, opcional): vetor de saída para o resultado (evita alocação).
 
     Retorna:
-    - Zipsi (torch.Tensor): vetor resultante da aplicação da operação Z_i em `psi`.
+    - torch.Tensor: resultado da aplicação da operação Z_i em `psi`.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
-    if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+    if tmp is None:
+        tmp = bit(indice, i)
     else:
-        indice_z = indice
+        bit(indice, i, tmp)
 
-    Zipsi = (1 - 2 * ((indice_z >> i) & 1)) * psi
+    tmp.mul_(-2).add_(1)
 
-    return Zipsi
+    if psi.dim() == 2:
+        tmpl = tmp.unsqueeze(1)
+    else:
+        tmpl = tmp
+
+    if out is None:
+        return tmpl * psi
+    else:
+        torch.mul_(tmpl, psi, out=out)
+        return out
 
 
-def Y(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
+
+def Y(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a porta de Pauli-Y no qubit `i` do vetor de estado `psi`.
 
-    A operação Y_i pode ser representada como Y_i = 1j * Z_i * X_i, combinando as ações
-    das portas Z e X com um fator imaginário. A função aplica essas operações sequencialmente
-    e multiplica o resultado por 1j para garantir a definição correta do operador Y.
+    A operação Y_i é definida como Y_i = i * Z_i * X_i.
 
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (2^L,) ou (2^L, N), tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual a porta Y será aplicada.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): tensor com os índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar para evitar alocações.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da operação Y_i em `psi`.
+    - torch.Tensor: vetor resultante da aplicação da operação Y_i.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
-    psi = Z(psi, L, i, indice)
-    psi = X(psi, L, i, indice)
+    # aplica Z_i em psi, resultado em tmp2
+    zpsi = Z(psi, L, i, indice, tmp=tmp)
 
-    return 1j * psi
+    # aplica X_i em zpsi, resultado em out
+    xzpsi = X(zpsi, L, i, indice, tmp=tmp)
+    
+    xzpsi.mul_(1j)  # multiplicação in-place
+
+    return xzpsi
 
 
-def Had(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
+def Had(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a porta de Hadamard no qubit `i` do vetor de estado `psi`.
 
-    A operação Hadamard é definida por:
-        H = (X + Z) / √2
-
-    Esta função aplica as portas de Pauli-X e Pauli-Z no qubit `i`, soma os resultados e normaliza
-    pelo fator √2, correspondendo à definição do operador de Hadamard.
-
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (dimensão 2^L ou 2^L × N), tensor complexo.
     - L (int): número de qubits.
-    - i (int): índice do qubit sobre o qual a porta Hadamard será aplicada.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - i (int): qubit sobre o qual H será aplicado.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): auxiliar inteiro para uso interno da porta Z.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da operação Hadamard no qubit `i`.
+    - torch.Tensor: vetor resultante da aplicação de Hadamard.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
-    Xpi = X(psi, L, i, indice)
-    Zpi = Z(psi, L, i, indice)
+    Zpi = Z(psi, L, i, indice, tmp=tmp)
+    Xpi = X(psi, L, i, indice, tmp=tmp)
+    Zpi.add_(Xpi)
+    Zpi.div_(torch.sqrt(torch.tensor(2.0, device=psi.device)))
 
-    return (Xpi + Zpi) / torch.sqrt(torch.tensor(2.0, device=psi.device))
+    return Zpi
 
 
-def S(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
+
+def S(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta de fase S no qubit `i` do vetor de estado `psi`.
 
-    A porta S é uma rotação de fase definida por:
-        S = diag(1, 1j)
-    Ela multiplica a componente do estado com o qubit `i` em |1⟩ por 1j, deixando a componente |0⟩ inalterada.
-
-    A implementação verifica o valor do bit na posição `i` e aplica o fator 1j nas componentes onde o bit é 1.
-
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (dimensão 2^L ou 2^L x N), tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual a porta S será aplicada.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): auxiliar inteiro para armazenar os bits (evita alocação).
+    - out (torch.Tensor, opcional): vetor de saída para resultado (in-place se fornecido).
 
     Retorna:
-    - Spsi (torch.Tensor): vetor resultante da aplicação da operação de fase S no qubit `i`.
+    - torch.Tensor: vetor resultante da aplicação de S_i.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
-    if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+    if tmp is None:
+        tmp = bit(indice, i)
     else:
-        indice_z = indice
+        bit(indice, i, tmp)
 
-    Spsi = (1 + ((indice_z >> i) & 1) * (1j - 1)) * psi
+    tmp.mul_(1j - 1).add_(1)
 
-    return Spsi
+    if psi.dim() == 2:
+        factor = tmp.unsqueeze(1)
+    else:
+        factor = tmp
+
+    if out is None:
+        return fator * psi
+    else:
+        torch.mul_(factor, psi, out=out)
+        return out
+
 
 
 def Sd(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
@@ -175,36 +187,41 @@ def Sd(psi : torch.Tensor, L : int, i : int, indice : torch.Tensor = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+    if tmp is None:
+        tmp = bit(indice, i)
     else:
-        indice_z = indice
+        bit(indice, i, tmp)
 
-    Sdpsi = (1 + ((indice_z >> i) & 1) * (-1j - 1)) * psi
+    tmp.mul_(-1j - 1).add_(1)
 
-    return Sdpsi
+    if psi.dim() == 2:
+        factor = tmp.unsqueeze(1)
+    else:
+        factor = tmp
+
+    if out is None:
+        return fator * psi
+    else:
+        torch.mul_(factor, psi, out=out)
+        return out
 
 
-def Rx(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
+def Rx(psi: torch.Tensor, L: int, i: int, theta: float, indice: torch.Tensor = None, tmp: torch.Tensor = None):
     """
-    Aplica a rotação em torno do eixo X (Rx) no qubit `i` do vetor de estado `psi`.
+    Aplica a rotação Rx(θ) no qubit `i` do vetor de estado `psi`.
 
-    A operação Rx(θ) é definida por:
-        Rx(θ) = exp(-i * θ * X / 2) = cos(θ/2) * I - i * sin(θ/2) * X
-
-    A função aplica esse operador ao vetor de estado, utilizando a operação X já definida
-    para trocar os estados onde o qubit `i` muda de |0⟩ para |1⟩ e vice-versa.
+    Rx(θ) = exp(-i * θ * X / 2) = cos(θ/2) * I - i * sin(θ/2) * X
 
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (2^L ou 2^L x N), tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual Rx será aplicado.
-    - theta (float): ângulo de rotação (em radianos).
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - theta (float): ângulo de rotação em radianos.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): vetor auxiliar de índices para X.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da rotação Rx(θ) no qubit `i`.
+    - torch.Tensor: resultado de Rx(θ) aplicado em `psi`.
     """
 
     if not isinstance(theta, torch.Tensor):
@@ -215,12 +232,15 @@ def Rx(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
 
-    Xpsi = X(psi, L, i, indice)
+    Xpsi = X(psi, L, i, indice, tmp=tmp)
+    Xpsi.mul_(-istheta)
+    Xpsi.add_(psi, alpha=ctheta)
 
-    return ctheta * psi - istheta * Xpsi
+    return Xpsi
 
 
-def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
+
+def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a rotação em torno do eixo Y (Ry) no qubit `i` do vetor de estado `psi`.
 
@@ -235,8 +255,8 @@ def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual Ry será aplicado.
     - theta (float): ângulo de rotação (em radianos).
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): vetor auxiliar de índices para Y.
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação da rotação Ry(θ) no qubit `i`.
@@ -250,31 +270,30 @@ def Ry(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
 
-    Ypsi = Y(psi, L, i, indice)
+    Ypsi = Y(psi, L, i, indice, tmp)
+    Ypsi.mul_(-istheta)
+    Ypsi.add_(psi, alpha=ctheta)
 
-    return ctheta * psi - istheta * Ypsi
+    return Ypsi
 
 
-def Rz(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tensor = None):
+def Rz(psi: torch.Tensor, L: int, i: int, theta: float, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
-    Aplica a rotação em torno do eixo Z (Rz) no qubit `i` do vetor de estado `psi`.
+    Aplica a rotação Rz(θ) no qubit `i` do vetor de estado `psi`.
 
-    A operação Rz(θ) é definida por:
-        Rz(θ) = exp(-i * θ * Z / 2) = cos(θ/2) * I - i * sin(θ/2) * Z
-
-    A função aplica esse operador ao vetor de estado, utilizando a função `Z` que simula a ação
-    do operador de Pauli-Z no qubit `i`.
+    Rz(θ) = exp(-i * θ * Z / 2) = cos(θ/2) * I - i * sin(θ/2) * Z
 
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (2^L ou 2^L x N), tensor complexo.
     - L (int): número de qubits.
     - i (int): índice do qubit sobre o qual Rz será aplicado.
-    - theta (float): ângulo de rotação (em radianos).
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - theta (float): ângulo de rotação em radianos.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): vetor auxiliar de inteiros para uso em Z.
+    - out (torch.Tensor, opcional): vetor de saída onde será armazenado o resultado.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da rotação Rz(θ) no qubit `i`.
+    - torch.Tensor: resultado de Rz(θ) aplicado a `psi`.
     """
 
     if not isinstance(theta, torch.Tensor):
@@ -284,78 +303,100 @@ def Rz(psi : torch.Tensor, L : int, i : int, theta : float, indice : torch.Tenso
 
     ctheta = torch.cos(theta / 2)
     istheta = 1j * torch.sin(theta / 2)
+    
 
-    Zpsi = Z(psi, L, i, indice)
+    Zpsi = Z(psi, L, i, indice, tmp=tmp, out=out)
 
-    return ctheta * psi - istheta * Zpsi
+    Zpsi = Y(psi, L, i, indice, tmp)
+    Zpsi.mul_(-istheta)
+    Zpsi.add_(psi, alpha=ctheta)
+
+    return Zpsi
+    
 
 
 
-def CNOT(psi : torch.Tensor, L : int, control : int, target : int, indice : torch.Tensor = None):
+def CNOT(psi: torch.Tensor, L: int, control: int, target: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a porta CNOT ao vetor de estado `psi`, com qubit de controle `control` e qubit alvo `target`.
 
-    A operação CNOT (Controlled-NOT) atua da seguinte forma:
-        - Se o qubit de controle estiver em |1⟩, aplica uma porta X (NOT) no qubit alvo.
-        - Caso contrário, não faz nada.
-
-    A função implementa essa lógica diretamente nos índices binários dos estados base. Para cada índice `i`,
-    se o bit correspondente ao qubit de controle for 1, inverte o bit correspondente ao qubit alvo.
-
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (2^L ou 2^L x N), tensor complexo.
     - L (int): número de qubits.
-    - control (int): índice do qubit de controle.
-    - target (int): índice do qubit alvo.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - control (int): qubit de controle.
+    - target (int): qubit alvo.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar para armazenar os índices modificados.
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da porta CNOT.
+    - torch.Tensor: vetor resultante da aplicação da CNOT.
     """
 
     if indice is None:
         indice = gerar_indice(L)
 
-    novo_indice =  (((indice >> control) & 1) << target) ^ indice
+    if tmp is None:
+        tmp = bit(indice, control)
+    else:
+        bit(indice, control, tmp)
 
-    return psi[novo_indice]
+    tmp.bitwise_left_shift_(target)
+    tmp.bitwise_xor_(indice)
+        
+    return psi[tmp]
 
 
-def CZ(psi : torch.Tensor, L : int, control : int, target : int, indice : torch.Tensor = None):
+
+def CZ(psi: torch.Tensor, L: int, control: int, target: int,
+       indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta CZ ao vetor de estado `psi`, com qubit de controle `control` e qubit alvo `target`.
 
-    A operação CZ (Controlled-Z) atua da seguinte forma:
-        - Se ambos os qubits `control` e `target` estiverem em |1⟩, aplica um fator de fase -1.
-        - Caso contrário, o estado permanece inalterado.
-
-    A função verifica, para cada índice, se os bits correspondentes aos qubits `control` e `target` são ambos 1,
-    e aplica o fator -1 nesses casos. A multiplicação é feita elemento a elemento.
-
     Parâmetros:
-    - psi (torch.Tensor): vetor de estado (dimensão 2^L), representado como tensor complexo.
+    - psi (torch.Tensor): vetor de estado (2^L ou 2^L x N), tensor complexo.
     - L (int): número de qubits.
     - control (int): índice do qubit de controle.
     - target (int): índice do qubit alvo.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar (mesma forma de `indice`).
+    - out (torch.Tensor, opcional): vetor de saída (se fornecido, operação é in-place).
 
     Retorna:
-    - (torch.Tensor): vetor resultante da aplicação da porta CZ.
+    - torch.Tensor: resultado da aplicação de CZ.
     """
-
 
     if indice is None:
         indice = gerar_indice(L)
 
-    indice_z = ((indice >> control) & (indice >> target)) & 1
-    factor = 1 - 2 * indice_z
-    
-    return factor.unsqueeze(1) * psi if psi.dim() == 2 else factor * psi
+    if target < control:
+        control, target = target, control
+           
+    if tmp is None:
+        tmp = indice.clone()
+    else:
+        tmp.copy_(indice)
+
+    tmp.bitwise_right_shift_(target - control)
+    tmp.bitwise_and_(indice)
+    tmp.bitwise_right_shift_(control)
+    tmp.bitwise_and_(1)
+           
+    tmp.mul_(-2).add_(1)
+
+    if psi.dim() == 2:
+        factor = tmp.unsqueeze(1)
+    else:
+        factor = tmp
+
+    if out is None:
+        return factor * psi
+    else:
+        torch.mul(psi, factor, out=out)
+        return out
 
 
-def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = None):
+
+def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica a porta SWAP ao vetor de estado `psi`, trocando os qubits `i` e `j`.
 
@@ -366,8 +407,8 @@ def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = 
     - L (int): número de qubits.
     - i (int): índice do primeiro qubit a ser trocado.
     - j (int): índice do segundo qubit a ser trocado.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar (mesma forma de `indice`).
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação da porta SWAP.
@@ -377,12 +418,12 @@ def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = 
     if indice is None:
         indice = gerar_indice(L)
     
-    novo_indice = permutar_bits(indice, i, j)
+    tmp = permutar_bits(indice, i, j, tmp)
 
-    return psi[novo_indice]
+    return psi[tmp]
 
 
-def XX(psi, L, i, j, indice = None):
+def XX(psi, L, i, j, indice : torch.Tensor = None, tmp: torch.Tensor = None):
     """
     Aplica o operador XX = X_i X_j ao vetor de estado `psi`.
 
@@ -396,8 +437,8 @@ def XX(psi, L, i, j, indice = None):
     - L (int): número de qubits.
     - i (int): índice do primeiro qubit.
     - j (int): índice do segundo qubit.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar (mesma forma de `indice`).
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação do operador XX.
@@ -406,12 +447,15 @@ def XX(psi, L, i, j, indice = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    novo_indice = indice ^ ((1 << i) | (1 << j))
+    if tmp is None:
+        tmp = indice ^ ((1 << i) | (1 << j))
+    else:
+        torch.bitwise_xor(indice, (1 << i) | (1 << j), out=tmp)
 
-    return psi[novo_indice]
+    return psi[tmp]
 
 
-def ZZ(psi, L, i, j, indice = None):
+def ZZ(psi, L, i, j, indice = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica o operador ZZ = Z_i Z_j ao vetor de estado `psi`.
 
@@ -424,8 +468,9 @@ def ZZ(psi, L, i, j, indice = None):
     - L (int): número de qubits.
     - i (int): índice do primeiro qubit.
     - j (int): índice do segundo qubit.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-      Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar (mesma forma de `indice`).
+    - out (torch.Tensor, opcional): tensor para resultado in-place.
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação do operador ZZ.
@@ -434,17 +479,35 @@ def ZZ(psi, L, i, j, indice = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    if psi.dim() == 2:
-        indice_z = indice.unsqueeze(1)
+   
+    if j < i:
+        i, j = j, i
+           
+    if tmp is None:
+        tmp = indice.clone()
     else:
-        indice_z = indice
+        tmp.copy_(indice)
 
-    novo_indice = 1 - 2 * (((indice_z >> i) ^ (indice_z >> j)) & 1)
+    tmp.bitwise_right_shift_(j - i)
+    tmp.bitwise_xor_(indice)
+    tmp.bitwise_right_shift_(i)
+    tmp.bitwise_and_(1)
+           
+    tmp.mul_(-2).add_(1)
 
-    return psi * novo_indice
+    if psi.dim() == 2:
+        factor = tmp.unsqueeze(1)
+    else:
+        factor = tmp
+
+    if out is None:
+        return factor * psi
+    else:
+        torch.mul(psi, factor, out=out)
+        return out
 
 
-def YY(psi, L, i, j, indice = None):
+def YY(psi, L, i, j, indice = None, tmp: torch.Tensor = None):
     """
     Aplica o operador YY = Y_i Y_j ao vetor de estado `psi`.
 
@@ -456,8 +519,8 @@ def YY(psi, L, i, j, indice = None):
     - L (int): número de qubits.
     - i (int): índice do primeiro qubit.
     - j (int): índice do segundo qubit.
-    - indice (torch.Tensor, opcional): tensor com os índices inteiros correspondentes aos estados base.
-    Se não fornecido, será gerado automaticamente.
+    - indice (torch.Tensor, opcional): índices dos estados base.
+    - tmp (torch.Tensor, opcional): tensor auxiliar (mesma forma de `indice`).
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação do operador YY.
@@ -466,7 +529,8 @@ def YY(psi, L, i, j, indice = None):
     if indice is None:
         indice = gerar_indice(L)
 
-    psi = ZZ(psi, L, i, j, indice)
-    psi = XX(psi, L, i, j, indice)
+    psi = ZZ(psi, L, i, j, indice, tmp)
+    psi = XX(psi, L, i, j, indice, tmp)
+    psi.mul_(-1)
 
-    return - psi
+    return psi
