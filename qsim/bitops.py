@@ -43,7 +43,7 @@ def ligar_bit(num, p: int, out=None):
         return out
 
 
-def desligar_bit(num, p: int, out=None):
+def desligar_bit(num, p: int, out=None, tmp=None):
     """
     Define o bit na posição p como 0 no número num.
 
@@ -93,7 +93,7 @@ def bit(num, i: int, out=None):
         return out
 
 
-def contar_bits(num, L: int, out=None):
+def contar_bits(num, L: int, out=None, tmp=None):
     """
     Conta o número de bits iguais a 1 nos L bits menos significativos de num.
 
@@ -101,6 +101,7 @@ def contar_bits(num, L: int, out=None):
     - num (int ou torch.Tensor): número(s) de entrada.
     - L (int): número de bits a considerar (menos significativos).
     - out (opcional): tensor de saída, onde será armazenado o resultado (se num for tensor).
+    - tmp (opcional): tensor auxiliar para evitar alocação temporária
 
     Retorna:
     - int: se num for int.
@@ -116,19 +117,21 @@ def contar_bits(num, L: int, out=None):
         out = torch.zeros_like(num)
     else:
         out.zero_()
+        
+    if tmp is None:
+        tmp = torch.empty_like(num)
 
-    tmp = torch.empty_like(num)
     for i in range(L):
         torch.bitwise_right_shift(num, i, out=tmp)
         tmp.bitwise_and_(1)   
         out.add_(tmp)
 
-    del tmp
+
     return out
 
 
 
-def permutar_bits(num, i: int, j: int, out=None):
+def permutar_bits(num, i: int, j: int, out=None, tmp=None):
     """
     Troca os bits nas posições i e j do número num.
 
@@ -137,6 +140,7 @@ def permutar_bits(num, i: int, j: int, out=None):
     - i (int): índice do primeiro bit.
     - j (int): índice do segundo bit.
     - out (opcional): tensor de saída (se num for tensor).
+    - tmp (opcional): tensor auxiliar para evitar alocação temporária
 
     Retorna:
     - int: se num for int.
@@ -150,7 +154,11 @@ def permutar_bits(num, i: int, j: int, out=None):
     if out is None:
         out = torch.empty_like(num)
 
-    tmp = num >> j
+    if tmp is None:
+        tmp = num >> j
+    else:
+        torch.bitwise_right_shift(num, j, out=tmp)
+
     
     torch.bitwise_right_shift(num, i, out=out)
 
@@ -162,17 +170,18 @@ def permutar_bits(num, i: int, j: int, out=None):
     tmp.bitwise_or_(out) # (mask << i) | (mask << j)
     torch.bitwise_xor(num, tmp, out=out)
 
-    del tmp
+
     return out
 
 
-def possui_um_bit_1(num, out=None):
+def possui_um_bit_1(num, out=None, tmp=None):
     """
     Verifica se o número possui exatamente um bit 1.
 
     Parâmetros:
     - num (int ou torch.Tensor): número de entrada.
     - out (opcional): tensor de saída booleano (se num for tensor).
+    - tmp (opcional): tensor auxiliar para evitar alocação temporária.
 
     Retorna:
     - bool: se num for int.
@@ -184,15 +193,18 @@ def possui_um_bit_1(num, out=None):
     if out is None:
         out = torch.empty_like(num, dtype=torch.bool)
 
-    tmp = num - 1
+    if tmp is None:
+        tmp = num - 1
+    else:
+        torch.sub(num, 1, other = tmp)
+
     tmp.bitwise_and_(num)
     out.copy_((num != 0) & (tmp == 0))
-    
-    del tmp
+
     return out
 
 
-def translacao(num, d: int, L: int, out=None):
+def translacao(num, d: int, L: int, out=None, tmp=None):
     """
     Aplica uma translação cíclica de d posições para a direita nos L bits de num.
 
@@ -201,6 +213,7 @@ def translacao(num, d: int, L: int, out=None):
     - d (int): número de posições a deslocar.
     - L (int): número total de bits considerados.
     - out (opcional): tensor de saída (se num for tensor).
+    - tmp (opcional): tensor auxiliar para evitar alocação temporária
 
     Retorna:
     - int: se num for int.
@@ -212,17 +225,19 @@ def translacao(num, d: int, L: int, out=None):
     if isinstance(num, int):
         return (num >> (L - d)) | ((num << d) & mask)
 
+    if tmp is None:
+        tmp = num << d
+    else:
+        torch.bitwise_left_shift(num, d, out=tmp)
 
     if out is None:
         out = torch.empty_like(num)
 
-    tmp = num << d
-
+ 
     torch.bitwise_right_shift(num, L - d, out=out)
     tmp.bitwise_and_(mask)
     out.bitwise_or_(tmp)
     
-    del tmp
     return out
 
 
@@ -252,7 +267,7 @@ def inversao(num, L: int, out=None):
     return out
 
 
-def reflexao(num, L: int, out=None):
+def reflexao(num, L: int, out=None, tmp=None):
     """
     Reflete a ordem dos L bits de num (espelhamento da bitstring).
 
@@ -260,6 +275,7 @@ def reflexao(num, L: int, out=None):
     - num (int ou torch.Tensor): número de entrada.
     - L (int): número total de bits.
     - out (opcional): tensor de saída (se num for tensor).
+    - tmp (opcional): tensor auxiliar para evitar alocação temporária
 
     Retorna:
     - int: se num for int.
@@ -277,7 +293,9 @@ def reflexao(num, L: int, out=None):
     else:
         out.zero_()
 
-    tmp = torch.empty_like(num)
+    if tmp is None:
+        tmp = torch.empty_like(num)
+        
     for i in range(L):
         torch.bitwise_right_shift(num, i, out=tmp)
         tmp.bitwise_and_(1)             # tmp = (num >> i) & 1
