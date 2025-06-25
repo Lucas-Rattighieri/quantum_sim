@@ -1,7 +1,7 @@
 import torch
 from .bitops import *
 
-def X(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
+def X(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta de Pauli-X no qubit `i` do vetor de estado `psi`.
 
@@ -11,6 +11,7 @@ def X(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch
     - i (int): índice do qubit sobre o qual a porta X será aplicada.
     - indice (torch.Tensor, opcional): tensor com os índices inteiros dos estados base.
     - tmp (torch.Tensor, opcional): tensor auxiliar para armazenar os índices modificados.
+    - out (torch.Tensor, opcional): vetor de saída para o resultado (evita alocação).
 
     Retorna:
     - (torch.Tensor): vetor resultante da aplicação da operação X_i em `psi`.
@@ -24,7 +25,11 @@ def X(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch
     else:
         torch.bitwise_xor(indice, 1 << i, out=tmp)
 
-    return psi[novo_indice]
+    if out is None:
+        return psi[tmp]
+    else:
+        torch.index_select(psi, dim, tmp, out=out)
+        return out
 
 
 def Z(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
@@ -66,7 +71,7 @@ def Z(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch
 
 
 
-def Y(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
+def Y(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta de Pauli-Y no qubit `i` do vetor de estado `psi`.
 
@@ -78,6 +83,7 @@ def Y(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch
     - i (int): índice do qubit sobre o qual a porta Y será aplicada.
     - indice (torch.Tensor, opcional): tensor com os índices dos estados base.
     - tmp (torch.Tensor, opcional): tensor auxiliar para evitar alocações.
+    - out (torch.Tensor, opcional): vetor de saída para o resultado (evita alocação).
 
     Retorna:
     - torch.Tensor: vetor resultante da aplicação da operação Y_i.
@@ -86,15 +92,15 @@ def Y(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch
     if indice is None:
         indice = gerar_indice(L)
 
-    # aplica Z_i em psi, resultado em tmp2
-    zpsi = Z(psi, L, i, indice, tmp=tmp)
 
-    # aplica X_i em zpsi, resultado em out
-    xzpsi = X(zpsi, L, i, indice, tmp=tmp)
+
+    out = X(psi, L, i, indice, tmp=tmp, out=out)
+
+    out = Z(out, L, i, indice, tmp=tmp, out=out)
     
-    xzpsi.mul_(1j)  # multiplicação in-place
+    out.mul_(-1j)  # multiplicação in-place
 
-    return xzpsi
+    return out
 
 
 def Had(psi: torch.Tensor, L: int, i: int, indice: torch.Tensor = None, tmp: torch.Tensor = None):
