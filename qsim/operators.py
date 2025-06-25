@@ -21,7 +21,7 @@ def X(psi: torch.Tensor, L: int, i: int,
     if indice is None:
         indice = gerar_indice(L)
 
-    if novo_indice is None:
+    if tmp is None:
         tmp = indice ^ (1 << i)
     else:
         torch.bitwise_xor(indice, 1 << i, out=tmp)
