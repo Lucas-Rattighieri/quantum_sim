@@ -43,7 +43,7 @@ def ligar_bit(num, p: int, out=None):
         return out
 
 
-def desligar_bit(num, p: int, out=None, tmp=None):
+def desligar_bit(num, p: int, out=None):
     """
     Define o bit na posição p como 0 no número num.
 
