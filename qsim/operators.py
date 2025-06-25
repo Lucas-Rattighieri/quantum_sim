@@ -68,7 +68,7 @@ def Z(psi: torch.Tensor, L: int, i: int,
     if out is None:
         return tmpl * psi
     else:
-        torch.mul_(tmpl, psi, out=out)
+        torch.mul(tmpl, psi, out=out)
         return out
 
 
