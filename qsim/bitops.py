@@ -131,7 +131,7 @@ def contar_bits(num, L: int, out=None, tmp=None):
 
 
 
-def permutar_bits(num, i: int, j: int, out=None, tmp=None):
+def permutar_bits(num, i: int, j: int, out=None):
     """
     Troca os bits nas posições i e j do número num.
 
@@ -140,7 +140,6 @@ def permutar_bits(num, i: int, j: int, out=None, tmp=None):
     - i (int): índice do primeiro bit.
     - j (int): índice do segundo bit.
     - out (opcional): tensor de saída (se num for tensor).
-    - tmp (opcional): tensor auxiliar para evitar alocação temporária
 
     Retorna:
     - int: se num for int.
@@ -154,23 +153,19 @@ def permutar_bits(num, i: int, j: int, out=None, tmp=None):
     if out is None:
         out = torch.empty_like(num)
 
-    if tmp is None:
-        tmp = num >> j
-    else:
-        torch.bitwise_right_shift(num, j, out=tmp)
+    if j < i:
+        i, j = j, i
 
+    torch.bitwise_right_shift(num, j - i, out=out)
+    out.bitwise_xor_(num)
+    out.bitwise_right_shift_(i)
+    out.bitwise_and_(1)
+
+    out.add_((1 << (j+1)) - 1)
+    out.bitwise_not_()
+    out.bitwise_and_(((1 << j) | (1 << i)))
+    out.bitwise_xor_(num)
     
-    torch.bitwise_right_shift(num, i, out=out)
-
-    tmp.bitwise_xor_(out)
-    tmp.bitwise_and_(1) # mask
-
-    torch.bitwise_left_shift(tmp, j, out=out) # mask << j
-    tmp.bitwise_left_shift_(i) # mask << i
-    tmp.bitwise_or_(out) # (mask << i) | (mask << j)
-    torch.bitwise_xor(num, tmp, out=out)
-
-
     return out
 
 
