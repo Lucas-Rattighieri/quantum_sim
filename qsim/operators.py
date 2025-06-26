@@ -126,11 +126,12 @@ def Had(psi: torch.Tensor, L: int, i: int,
 
     out = X(psi, L, i, indice, tmp=tmp, out=out)
 
-    out = Z(out, L, i, indice, tmp=tmp, out=out)
+    Z(psi, L, i, indice, tmp=tmp, out=psi)
     
-    out.sub_(psi)
+    out.add_(psi)
+    Z(psi, L, i, indice, tmp=tmp, out=psi)  
     
-    out.div_(-torch.sqrt(torch.tensor(2.0, device=psi.device)))
+    out.div_(torch.sqrt(torch.tensor(2.0, device=psi.device)))
 
     return out
 
