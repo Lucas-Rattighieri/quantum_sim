@@ -254,6 +254,7 @@ def Hzz(psi : torch.Tensor, L : int, w,
 def Hxy(psi : torch.Tensor, L : int, w, 
        indice : torch.Tensor = None, tmp: torch.Tensor = None, 
        out: torch.Tensor = None, tmppsi: torch.Tensor = None):
+
     """
     Aplica a ação do Hamiltoniano XY sobre o vetor de estado `psi`.
 
@@ -297,6 +298,8 @@ def Hxy(psi : torch.Tensor, L : int, w,
                 tmp.bitwise_xor_(indice)
 
                 torch.index_select(psi, 0, tmp, out=tmppsi)
+                tmp.bitwise_right_shift_(j)
+                tmppsi.mul_(tmp)
 
                 out.add_(tmpsi)
                 
