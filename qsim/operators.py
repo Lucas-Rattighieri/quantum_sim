@@ -164,7 +164,8 @@ def S(psi: torch.Tensor, L: int, i: int,
     if out is None:
           out = torch.ones_like(psi)
     else:
-          out.ones_()
+          torch.ones(out.size(), out=out)
+
 
     if psi.dim() == 2:
         factor = tmp.unsqueeze(1)
@@ -214,7 +215,7 @@ def Sd(psi : torch.Tensor, L : int, i : int,
     if out is None:
           out = torch.ones_like(psi)
     else:
-          out.ones_()
+          torch.ones(out.size(), out=out)
 
     if psi.dim() == 2:
         factor = tmp.unsqueeze(1)
