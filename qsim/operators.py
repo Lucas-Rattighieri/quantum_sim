@@ -429,7 +429,8 @@ def CZ(psi: torch.Tensor, L: int, control: int, target: int,
 
 
 
-def SWAP(psi : torch.Tensor, L : int, i : int, j : int, indice : torch.Tensor = None, tmp: torch.Tensor = None):
+def SWAP(psi : torch.Tensor, L : int, i : int, j : int, 
+         indice : torch.Tensor = None, tmp: torch.Tensor = None, out: torch.Tensor = None):
     """
     Aplica a porta SWAP ao vetor de estado `psi`, trocando os qubits `i` e `j`.
 
