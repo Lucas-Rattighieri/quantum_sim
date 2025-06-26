@@ -577,6 +577,6 @@ def YY(psi, L, i, j, indice = None, tmp: torch.Tensor = None, out: torch.Tensor 
     
     out = XX(psi, L, i, j, indice, tmp, out)
     out = ZZ(out, L, i, j, indice, tmp, out)
-    psi.mul_(-1)
+    out.mul_(-1)
 
     return out
