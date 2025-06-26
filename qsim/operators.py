@@ -161,18 +161,22 @@ def S(psi: torch.Tensor, L: int, i: int,
     else:
         bit(indice, i, tmp)
 
-    tmp.mul_(1j - 1).add_(1)
+    if out is None:
+          out = torch.ones_like(psi)
+    else:
+          out.ones_()
 
     if psi.dim() == 2:
         factor = tmp.unsqueeze(1)
     else:
         factor = tmp
+          
+    out.mul_(factor)
+    out.mul_(1j - 1)
+    out.add_(1)
+    out.mul_(psi)
 
-    if out is None:
-        return fator * psi
-    else:
-        torch.mul_(factor, psi, out=out)
-        return out
+    return out
 
 
 
@@ -207,18 +211,22 @@ def Sd(psi : torch.Tensor, L : int, i : int,
     else:
         bit(indice, i, tmp)
 
-    tmp.mul_(-1j - 1).add_(1)
+    if out is None:
+          out = torch.ones_like(psi)
+    else:
+          out.ones_()
 
     if psi.dim() == 2:
         factor = tmp.unsqueeze(1)
     else:
         factor = tmp
+          
+    out.mul_(factor)
+    out.mul_(-1j - 1)
+    out.add_(1)
+    out.mul_(psi)
 
-    if out is None:
-        return fator * psi
-    else:
-        torch.mul_(factor, psi, out=out)
-        return out
+    return out
 
 
 def Rx(psi: torch.Tensor, L: int, i: int, theta: float, 
