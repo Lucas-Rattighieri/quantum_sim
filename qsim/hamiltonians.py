@@ -30,7 +30,7 @@ def Hx(psi : torch.Tensor, L : int,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -67,7 +67,7 @@ def Hy(psi : torch.Tensor, L : int,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -107,7 +107,7 @@ def Hz(psi : torch.Tensor, L : int,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -148,7 +148,7 @@ def Hxx(psi : torch.Tensor, L : int, w,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -191,7 +191,7 @@ def Hyy(psi : torch.Tensor, L : int, w,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -236,7 +236,7 @@ def Hzz(psi : torch.Tensor, L : int, w,
         indice = gerar_indice(L)
 
     if tmppsi is None:
-        tmppsi.empty_like(psi)
+        tmppsi = torch.empty_like(psi)
 
     if out is None:
         out = torch.zeros_like(psi)
@@ -279,7 +279,10 @@ def Hxy(psi : torch.Tensor, L : int, w,
 
     if indice is None:
         indice = gerar_indice(L)
-        
+
+    if tmppsi is None:
+        tmppsi = torch.empty_like(psi)
+
     if out is None:
         out = torch.zeros_like(psi)
     else:
