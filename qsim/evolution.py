@@ -49,7 +49,7 @@ def expHx(psi : torch.Tensor, L : int, theta : float,
         out.zeros_()
 
     for a in range(L):
-        out = X(tmppsi, L, i, indice, tmp=tmp, out=out)
+        out = X(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
         out, tmpsi = tmpsi, out
@@ -105,7 +105,7 @@ def expHy(psi : torch.Tensor, L : int, theta : float,
         out.zeros_()
 
     for a in range(L):
-        out = Y(tmppsi, L, i, indice, tmp=tmp, out=out)
+        out = Y(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
         out, tmpsi = tmpsi, out
@@ -162,7 +162,7 @@ def expHz(psi : torch.Tensor, L : int, theta : float,
         out.zeros_()
 
     for a in range(L):
-        out = Z(tmppsi, L, i, indice, tmp=tmp, out=out)
+        out = Z(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
         out, tmpsi = tmpsi, out
