@@ -52,10 +52,10 @@ def expHx(psi : torch.Tensor, L : int, theta : float,
         out = X(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
         
     if L & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
@@ -108,10 +108,10 @@ def expHy(psi : torch.Tensor, L : int, theta : float,
         out = Y(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
         
     if L & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
@@ -165,10 +165,10 @@ def expHz(psi : torch.Tensor, L : int, theta : float,
         out = Z(tmppsi, L, a, indice, tmp=tmp, out=out)
         out.mul_(-istheta)
         out.add_(tmppsi, alpha=ctheta)
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
         
     if L & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
@@ -225,11 +225,11 @@ def expHxx(psi : torch.Tensor, L : int, w, theta : float,
                 out = XX(tmppsi, L, i, j, indice, tmp=tmp, out=out)
                 out.mul_(-istheta)
                 out.add_(tmppsi, alpha=ctheta)
-                out, tmpsi = tmpsi, out
+                out, tmppsi = tmppsi, out
                 k += 1
 
     if k & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
@@ -286,11 +286,11 @@ def expHyy(psi : torch.Tensor, L : int, w, theta : float,
                 out = YY(tmppsi, L, i, j, indice, tmp=tmp, out=out)
                 out.mul_(-istheta)
                 out.add_(tmppsi, alpha=ctheta)
-                out, tmpsi = tmpsi, out
+                out, tmppsi = tmppsi, out
                 k += 1
 
     if k & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
@@ -347,11 +347,11 @@ def expHzz(psi : torch.Tensor, L : int, w, theta : float,
                 out = ZZ(tmppsi, L, i, j, indice, tmp=tmp, out=out)
                 out.mul_(-istheta)
                 out.add_(tmppsi, alpha=ctheta)
-                out, tmpsi = tmpsi, out
+                out, tmppsi = tmppsi, out
                 k += 1
 
     if k & 1:
-        out, tmpsi = tmpsi, out
+        out, tmppsi = tmppsi, out
 
     return out
 
